@@ -27,9 +27,9 @@ from hypothesis.internal.compat import OrderedDict, text_type
 from hypothesis.internal.detection import is_hypothesis_test
 
 LOAD_PROFILE_OPTION = '--hypothesis-profile'
+VERBOSITY_OPTION = '--hypothesis-verbosity'
 PRINT_STATISTICS_OPTION = '--hypothesis-show-statistics'
 SEED_OPTION = '--hypothesis-seed'
-
 
 class StoringReporter(object):
 
@@ -53,6 +53,11 @@ def pytest_addoption(parser):
         help='Load in a registered hypothesis.settings profile'
     )
     group.addoption(
+        VERBOSITY_OPTION,
+        action='store',
+        help='Override profile with verbosity setting specified'
+    )
+    group.addoption(
         PRINT_STATISTICS_OPTION,
         action='store_true',
         help='Configure when statistics are printed',
@@ -68,9 +73,13 @@ def pytest_addoption(parser):
 def pytest_configure(config):
     core.running_under_pytest = True
     from hypothesis import settings
+    from hypothesis._settings import Verbosity
     profile = config.getoption(LOAD_PROFILE_OPTION)
     if profile:
         settings.load_profile(profile)
+    verbosity = config.getoption(VERBOSITY_OPTION)   
+    if verbosity:
+        settings.verbosity = Verbosity[verbosity]
     seed = config.getoption(SEED_OPTION)
     if seed is not None:
         try:
